@@ -1,0 +1,50 @@
+[project]
+name = "法律新闻自动化"
+timezone = "Asia/Shanghai"
+
+[paths]
+# output 根目录只保留 Word、HTML 等人工使用的成品；JSON 调试记录写入隐藏 .debug 文件夹。
+output_dir = "output"
+debug_dir = ".debug"
+debug_keep_count = 20
+word_template = "templates/法讯草稿模板.docx"
+wechat_template = "templates/公众号编辑器模板.html"
+wechat_profile_dir = ".wechat-browser"
+
+[llm]
+enabled = true
+base_url = "https://api.openai.com/v1"
+# 不要在此填写真实 Key；使用下方环境变量名。
+api_key = ""
+api_key_env = "OPENAI_API_KEY"
+model = "你的模型名"
+timeout_seconds = 90
+max_content_chars = 12000
+temperature = 0.2
+json_mode = false
+retries = 2
+
+[filters]
+keywords = [
+  "网络安全", "数据合规", "个人信息", "数据保护", "人工智能", "低空经济",
+  "电信", "信息通信", "通信管理", "互联网基础资源", "网信办", "国家数据局",
+  "贸易合规", "出口管制", "公司治理", "广告", "医疗", "劳动"
+]
+
+[official]
+# 除 .gov/.gov.cn 外，域名包含下列机关标识时也会被初步认定为官方网站。
+authority_tokens = [
+  "miit", "mofcom", "mof", "ndrc", "cac", "samr", "mep", "mee", "mps",
+  "moj", "nhc", "mohurd", "nmpa", "customs", "chinacourt", "court", "spc",
+  "spp", "csrc", "pbc", "nfra", "sasac", "tc260", "caict", "cnca", "nca"
+]
+non_official_warning = "【可能非官方网站，待核实修改】"
+
+[official_search]
+# 当前只做官网识别，不主动搜索或猜测官方链接。
+enabled = false
+
+[wk]
+list_url = "https://law.wkinfo.com.cn/news/list"
+enabled = false
+cookie = ""

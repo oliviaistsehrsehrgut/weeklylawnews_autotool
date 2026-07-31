@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.wechat-browser/
+.env
+config.toml
+input/*
+!input/sample_links.txt
+work/.sessions/
+output/
+static/__pycache__/
+

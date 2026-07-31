@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>法讯自动化工作台</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><h1>法讯自动化工作台</h1><p>批量整理新闻，人工确认后生成 Word 初稿</p></div>
+      <div class="topbar-actions">
+        <button id="llm-settings-btn" class="secondary">API 配置</button>
+        <a class="secondary button-link" href="/api/templates/word" download>下载 Word 模板</a>
+        <a class="secondary button-link" href="/api/templates/html" download>下载 HTML 模板</a>
+        <span id="session-state" class="state">未开始</span>
+      </div>
+    </header>
+    <div id="llm-modal" class="modal" hidden>
+      <div class="modal-backdrop" data-action="close-llm-modal"></div>
+      <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="llm-modal-title">
+        <div class="modal-head">
+          <div><h2 id="llm-modal-title">摘要 API 配置</h2><p>支持 OpenAI-compatible 的 Chat Completions 接口。</p></div>
+          <button class="modal-close" data-action="close-llm-modal" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-field"><label for="llm-base-url">API Base URL</label><input id="llm-base-url" placeholder="例如 https://api.example.com/v1"></div>
+        <div class="modal-field"><label for="llm-model">模型名称</label><input id="llm-model" placeholder="例如 gpt-4o-mini"></div>
+        <div class="modal-field"><label for="llm-key">API Key</label><input id="llm-key" type="password" autocomplete="off" placeholder="仅在本次会话使用，不写入配置文件"></div>
+        <p id="llm-modal-error" class="error" role="alert"></p>
+        <div class="modal-actions">
+          <span id="llm-state" class="muted">未配置</span>
+          <button id="clear-key-btn" class="secondary">清除本会话配置</button>
+          <button id="save-key-btn" class="primary">应用配置</button>
+        </div>
+      </section>
+    </div>
+    <section class="import-panel">
+      <label for="input-text">批量粘贴链接</label>
+      <textarea id="input-text" rows="6" placeholder="每行一个链接，也支持 1. https://... 的格式"></textarea>
+      <div class="import-tools">
+        <button id="export-links-btn" type="button" class="secondary">&#x5BFC;&#x51FA;&#x94FE;&#x63A5; TXT</button>
+        <input id="word-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+        <button id="upload-word-btn" type="button" class="secondary">上传 Word 并解析</button>
+        <span id="export-state" class="muted"></span>
+        <span id="upload-state" class="muted"></span>
+      </div>
+      <div class="date-row">
+        <label>周起始 <input id="week-start" type="date"></label>
+        <label>周结束 <input id="week-end" type="date"></label>
+        <button id="create-btn" class="primary">获取并生成初稿</button>
+      </div>
+      <p id="week-hint" class="week-hint" aria-live="polite"></p>
+      <p id="global-error" class="error" role="alert"></p>
+    </section>
+    <div id="news-toolbar" class="news-toolbar" hidden>
+      <span class="muted">新闻条目</span>
+      <button id="add-btn" class="secondary">＋ 增加新闻</button>
+    </div>
+    <section id="news-list" class="news-list" aria-live="polite"></section>
+    <footer id="actions" class="actions" hidden>
+      <button id="sort-btn" class="secondary">&#x81EA;&#x52A8;&#x6392;&#x5E8F;</button>
+      <span id="save-state" class="muted">页面修改后请先更新</span>
+      <button id="update-btn" class="secondary">更新已修改新闻</button>
+      <button id="html-btn" class="secondary">生成 HTML 文件</button>
+      <button id="word-btn" class="primary">生成 Word 初稿</button>
+    </footer>
+  </main>
+  <script src="/static/app.js?v=20260731-5"></script>
+</body>
+</html>

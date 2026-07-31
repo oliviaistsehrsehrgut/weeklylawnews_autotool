@@ -1,0 +1,69 @@
+:root { --blue: #76B1FF; --blue-dark: #4E8FD9; --blue-pale: #F4F8FF; --line: #D8E7F8; --text: #26384D; --muted: #6E7F93; --warn: #9A641F; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #F7FAFE; color: var(--text); font: 15px/1.65 "Segoe UI", "Microsoft YaHei", sans-serif; }
+.shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 56px; }
+.topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.topbar-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+h1 { margin: 0; font-size: 25px; font-weight: 650; letter-spacing: 0; }
+.topbar p { margin: 5px 0 0; color: var(--muted); }
+.state { color: var(--blue-dark); background: #E8F2FF; border: 1px solid #C8DFFF; padding: 4px 10px; white-space: nowrap; }
+.import-panel, .news-card { background: #FFF; border: 1px solid var(--line); border-radius: 6px; }
+.import-panel { padding: 20px; }
+label { display: block; font-weight: 600; }
+textarea, input { width: 100%; border: 1px solid #C9D9EA; border-radius: 4px; color: var(--text); background: #FFF; font: inherit; padding: 9px 10px; outline: none; }
+textarea:focus, input:focus { border-color: var(--blue-dark); box-shadow: 0 0 0 3px #E8F2FF; }
+#input-text { margin-top: 7px; resize: vertical; min-height: 126px; }
+.import-tools { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.import-tools .muted { margin-right: 0; }
+.date-row { display: flex; align-items: end; gap: 14px; margin-top: 15px; }
+.date-row label { width: 170px; }
+.date-row input { display: block; margin-top: 5px; }
+.news-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.news-toolbar .muted { margin-right: auto; }
+button { border: 1px solid transparent; border-radius: 4px; padding: 9px 16px; font: inherit; cursor: pointer; white-space: nowrap; }
+button:disabled { cursor: wait; opacity: .6; }
+.button-link { display: inline-flex; align-items: center; text-decoration: none; }
+.primary { color: #FFF; background: var(--blue-dark); }
+.primary:hover { background: #3E7EC8; }
+.secondary { color: #3F75B4; background: #EDF5FF; border-color: #C4DDF9; }
+#llm-settings-btn, #session-state { display: inline-flex; align-items: center; justify-content: center; width: 120px; text-align: center; }
+.news-list { display: grid; gap: 14px; margin-top: 18px; }
+.news-card { padding: 18px 20px; }
+.card-head { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid #E8F0F8; padding-bottom: 12px; margin-bottom: 14px; }
+.card-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.drag-handle { width: 30px; padding: 1px 0; color: var(--muted); background: transparent; border-color: transparent; cursor: grab; font-size: 18px; line-height: 1; }
+.drag-handle:active { cursor: grabbing; }
+.news-card.dragging { opacity: .55; }
+.news-card.drag-over { border-color: var(--blue-dark); box-shadow: 0 0 0 3px #E8F2FF; }
+.number { color: var(--blue-dark); font-weight: 700; }
+.remove { padding: 2px 7px; color: #9A4B4B; background: #FFF5F5; border-color: #F1D5D5; }
+.field { margin-top: 12px; }
+.field textarea { margin-top: 5px; }
+.link-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-top: 5px; }
+.link-input { font-family: Consolas, monospace; font-size: 13px; }
+.open-link { width: 40px; padding: 8px 0; color: #3F75B4; background: #EDF5FF; border-color: #C4DDF9; font-size: 18px; line-height: 1; }
+.open-link:disabled { cursor: not-allowed; opacity: .45; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 13px; margin-top: 11px; }
+.official, .ok { color: #357B59; }.unofficial { color: var(--warn); }
+.full-text { min-height: 150px; resize: vertical; overflow-y: auto; }
+.week-hint { min-height: 1.65em; margin: 7px 0 0; color: var(--blue-dark); font-size: 13px; }
+.check-row { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 12px; color: #4B6077; font-weight: 500; }
+.check-row label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; }
+.check-row input { width: auto; }
+.card-error, .error { color: #B14D4D; margin: 8px 0 0; }
+.actions { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 0 0; margin-top: 18px; background: #F7FAFE; }
+.muted { color: var(--muted); margin-right: auto; }
+.modal[hidden] { display: none; }
+.modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(21, 37, 55, .34); }
+.modal-dialog { position: relative; width: min(560px, 100%); background: #FFF; border: 1px solid var(--line); border-radius: 6px; padding: 22px; box-shadow: 0 18px 60px rgba(22, 49, 78, .2); }
+.modal-head { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; margin-bottom: 18px; }
+.modal-head h2 { margin: 0; font-size: 20px; }
+.modal-head p { margin: 5px 0 0; color: var(--muted); }
+.modal-close { padding: 2px 9px; color: var(--muted); background: #F4F8FC; border-color: var(--line); font-size: 20px; line-height: 1; }
+.modal-field { margin-top: 12px; }
+.modal-field input { margin-top: 5px; }
+.modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
+.modal-actions .muted { margin-right: auto; }
+@media (max-width: 680px) { .shell { width: min(100% - 20px, 1120px); padding-top: 20px; } .topbar { display: block; } .topbar-actions { margin-top: 10px; justify-content: flex-start; } .state { display: inline-block; } .date-row { align-items: stretch; flex-wrap: wrap; } .date-row label { width: calc(50% - 7px); } .date-row button { width: 100%; } .news-toolbar { align-items: stretch; flex-wrap: wrap; } .news-toolbar .muted { width: 100%; } .news-toolbar button { width: 100%; } .actions { flex-wrap: wrap; } .muted { width: 100%; } .actions button { flex: 1; } .modal-actions { flex-wrap: wrap; } .modal-actions .muted { width: 100%; } .modal-actions button { flex: 1; } }
+@media (max-width: 680px) { .import-tools { align-items: stretch; flex-wrap: wrap; } .import-tools button { width: 100%; } .import-tools .muted { width: 100%; } }
