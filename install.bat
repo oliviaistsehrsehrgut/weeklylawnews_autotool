@@ -95,6 +95,15 @@ if /i "%INSTALL_PW%"=="y" (
     echo [跳过] 如需补装，运行：_python\Scripts\playwright.exe install chromium
 )
 
+REM --- 创建桌面快捷方式 ---
+echo [*] 正在创建桌面快捷方式...
+powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Desktop = [System.Environment]::GetFolderPath('Desktop'); $Shortcut = $WshShell.CreateShortcut($Desktop + '\法讯自动化.lnk'); $Shortcut.TargetPath = '%SCRIPT_DIR%法讯自动化.bat'; $Shortcut.IconLocation = '%SCRIPT_DIR%icon.ico'; $Shortcut.WorkingDirectory = '%SCRIPT_DIR%'; $Shortcut.Description = '法讯自动化工作台'; $Shortcut.Save()"
+if errorlevel 1 (
+    echo [警告] 桌面快捷方式创建失败，可手动双击 法讯自动化.bat 启动程序。
+) else (
+    echo [OK] 桌面快捷方式已创建。
+)
+
 echo.
 echo ======================================
 echo   安装完成！
@@ -102,7 +111,8 @@ echo ======================================
 echo.
 echo 接下来请：
 echo   1. 用记事本打开 config.toml，填写 API Key 和模型名
-echo   2. 双击 start.bat 启动程序
+echo   2. 双击桌面上的「法讯自动化」图标启动程序
+echo      （或双击文件夹内的 法讯自动化.bat）
 echo   3. 浏览器访问 http://127.0.0.1:8000
 echo.
 pause
