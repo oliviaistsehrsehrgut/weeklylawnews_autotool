@@ -27,8 +27,13 @@ button:disabled { cursor: wait; opacity: .6; }
 .primary:hover { background: #3E7EC8; }
 .secondary { color: #3F75B4; background: #EDF5FF; border-color: #C4DDF9; }
 #llm-settings-btn, #session-state { display: inline-flex; align-items: center; justify-content: center; width: 120px; text-align: center; }
-.news-list { display: grid; gap: 14px; margin-top: 18px; }
+.news-list { display: grid; gap: 0; margin-top: 18px; }
 .news-card { padding: 18px 20px; }
+.insert-strip { height: 14px; display: flex; align-items: center; justify-content: center; position: relative; }
+.insert-strip::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--blue); opacity: 0; transition: opacity .12s; }
+.insert-strip:hover::before { opacity: 1; }
+.insert-btn { position: relative; z-index: 1; padding: 0 10px; font-size: 12px; line-height: 1.5; color: #fff; background: var(--blue-dark); border-color: var(--blue-dark); border-radius: 3px; opacity: 0; transition: opacity .12s; cursor: pointer; }
+.insert-strip:hover .insert-btn { opacity: 1; }
 .card-head { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid #E8F0F8; padding-bottom: 12px; margin-bottom: 14px; }
 .card-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .drag-handle { width: 30px; padding: 1px 0; color: var(--muted); background: transparent; border-color: transparent; cursor: grab; font-size: 18px; line-height: 1; }

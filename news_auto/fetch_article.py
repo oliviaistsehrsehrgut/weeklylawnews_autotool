@@ -14,6 +14,13 @@ try:
 except ImportError:  # pragma: no cover
     sync_playwright = None
 
+try:
+    import trafilatura as _trafilatura
+    _HAS_TRAFILATURA = True
+except ImportError:  # pragma: no cover
+    _trafilatura = None  # type: ignore[assignment]
+    _HAS_TRAFILATURA = False
+
 from .models import NewsItem
 from .official_source import detect_official_source
 
@@ -93,7 +100,7 @@ def fetch_one(
         response_headers = response.headers
     else:
         response.raise_for_status()
-        response.encoding = response.apparent_encoding or response.encoding
+        response.encoding = _detect_html_encoding(response)
         html = response.text
         response_headers = response.headers
     parsed = urlparse(item.link)
@@ -113,6 +120,25 @@ def fetch_one(
     return item
 
 
+def _detect_html_encoding(response: requests.Response) -> str:
+    """Detect encoding: Content-Type header → HTML meta charset → chardet → UTF-8."""
+    # Trust the encoding declared in the Content-Type header, except for
+    # 'iso-8859-1' which requests uses as a default when no charset is declared.
+    declared = (response.encoding or "").lower()
+    if declared and declared not in ("iso-8859-1", "latin-1"):
+        return declared
+    # Peek at the first 4 KB for a <meta charset="..."> declaration
+    meta = re.search(
+        rb'charset=["\']?\s*([a-zA-Z0-9_-]+)',
+        response.content[:4096],
+        re.IGNORECASE,
+    )
+    if meta:
+        return meta.group(1).decode("ascii", errors="replace")
+    # Fall back to chardet/charset_normalizer, then UTF-8
+    return response.apparent_encoding or "utf-8"
+
+
 def parse_wechat_article(item: NewsItem, html: str) -> None:
     soup = BeautifulSoup(html, "lxml")
     title = text_of(soup.select_one("#activity-name")) or meta_content(soup, "og:title")
@@ -128,6 +154,7 @@ def parse_wechat_article(item: NewsItem, html: str) -> None:
 
 def parse_generic_article(item: NewsItem, html: str, headers: requests.structures.CaseInsensitiveDict) -> None:
     soup = BeautifulSoup(html, "lxml")
+    # Title and date: keep meta-tag extraction (reliable for Chinese government sites)
     title = meta_content(soup, "og:title") or text_of(soup.title) or first_heading(soup)
     date = (
         meta_content(soup, "article:published_time")
@@ -135,16 +162,33 @@ def parse_generic_article(item: NewsItem, html: str, headers: requests.structure
         or headers.get("Last-Modified")
         or extract_date_text(soup.get_text("\n"))
     )
-    content_node = (
-        soup.select_one("article")
-        or soup.select_one("main")
-        or soup.select_one("#content")
-        or soup.select_one(".content")
-        or soup.body
-    )
+
+    # Content: trafilatura strips nav / footer / comments / ads automatically
+    content = ""
+    if _HAS_TRAFILATURA:
+        content = _trafilatura.extract(
+            html,
+            url=item.link or None,
+            include_comments=False,
+            include_tables=True,
+            favor_precision=True,
+            deduplicate=True,
+        ) or ""
+
+    # Fallback to BeautifulSoup selector when trafilatura returns nothing
+    if not content:
+        content_node = (
+            soup.select_one("article")
+            or soup.select_one("main")
+            or soup.select_one("#content")
+            or soup.select_one(".content")
+            or soup.body
+        )
+        content = clean_spaces(text_of(content_node))
+
     item.title = item.title or clean_spaces(title)
     item.pub_date = normalize_date(date)
-    item.content = clean_spaces(text_of(content_node))
+    item.content = content.strip()
     if not item.source:
         item.source = urlparse(item.link).netloc
 

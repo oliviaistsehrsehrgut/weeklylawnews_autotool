@@ -39,11 +39,14 @@
       <label for="input-text">批量粘贴链接</label>
       <textarea id="input-text" rows="6" placeholder="每行一个链接，也支持 1. https://... 的格式"></textarea>
       <div class="import-tools">
-        <button id="export-links-btn" type="button" class="secondary">&#x5BFC;&#x51FA;&#x94FE;&#x63A5; TXT</button>
+        <input id="word-direct-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+        <button id="word-direct-btn" type="button" class="primary">Word 直接转 HTML</button>
         <input id="word-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
         <button id="upload-word-btn" type="button" class="secondary">上传 Word 并解析</button>
-        <span id="export-state" class="muted"></span>
+        <button id="export-links-btn" type="button" class="secondary">&#x5BFC;&#x51FA;&#x94FE;&#x63A5; TXT</button>
+        <span id="direct-state" class="muted"></span>
         <span id="upload-state" class="muted"></span>
+        <span id="export-state" class="muted"></span>
       </div>
       <div class="date-row">
         <label>周起始 <input id="week-start" type="date"></label>
@@ -53,7 +56,7 @@
       <p id="week-hint" class="week-hint" aria-live="polite"></p>
       <p id="global-error" class="error" role="alert"></p>
     </section>
-    <div id="news-toolbar" class="news-toolbar" hidden>
+    <div id="news-toolbar" class="news-toolbar">
       <span class="muted">新闻条目</span>
       <button id="add-btn" class="secondary">＋ 增加新闻</button>
     </div>
@@ -66,6 +69,6 @@
       <button id="word-btn" class="primary">生成 Word 初稿</button>
     </footer>
   </main>
-  <script src="/static/app.js?v=20260731-5"></script>
+  <script src="/static/app.js?v=20260906-1"></script>
 </body>
 </html>

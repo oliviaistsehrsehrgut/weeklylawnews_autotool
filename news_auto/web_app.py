@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from urllib.parse import unquote
 from uuid import uuid4
 
@@ -41,7 +41,7 @@ class CreateRequest(BaseModel):
     input_text: str = Field(min_length=1)
     week_start: str = ""
     week_end: str = ""
-    llm_config: LlmConfigRequest | None = None
+    llm_config: Optional[LlmConfigRequest] = None
 
 
 class UpdateRequest(BaseModel):
@@ -56,7 +56,7 @@ class RefreshRequest(BaseModel):
 def view_of(
     item: NewsItem,
     original_link: str = "",
-    config: Dict[str, Any] | None = None,
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     active_config = config or CONFIG
     link = item.official_link or item.link
@@ -104,7 +104,7 @@ def item_from_view(data: Dict[str, Any]) -> NewsItem:
 def process_items(
     items: list[NewsItem],
     fetch: bool = True,
-    config: Dict[str, Any] | None = None,
+    config: Optional[Dict[str, Any]] = None,
 ) -> list[Dict[str, Any]]:
     active_config = config or CONFIG
     if fetch:
@@ -120,7 +120,7 @@ def process_items(
         items = enrich_with_llm(items, active_config)
     return [
         view_of(item, item.metadata.get("original_link", ""), config=active_config)
-        for item in sort_items(items)
+        for item in items
     ]
 
 
@@ -150,7 +150,7 @@ def auto_sort_items(items: list[NewsItem], config: Dict[str, Any]) -> list[NewsI
     return sort_items(ordered)
 
 
-def build_runtime_config(request: LlmConfigRequest | None) -> Dict[str, Any]:
+def build_runtime_config(request: Optional[LlmConfigRequest]) -> Dict[str, Any]:
     if request is None:
         return CONFIG
 
@@ -449,6 +449,49 @@ def create_html(session_id: str) -> FileResponse:
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid week end date")
     output_path = output_dir / f"{end_date:%m%d}\u6cd5\u8baf_{session_id[:8]}.html"
+    render_wechat_html(
+        items,
+        ROOT / CONFIG["paths"].get(
+            "wechat_template", "templates/公众号编辑器模板.html"
+        ),
+        output_path,
+    )
+    return FileResponse(output_path, filename=output_path.name, media_type="text/html")
+# 这是要添加到 web_app.py 末尾的新端点
+
+@app.post("/api/word/direct-html")
+async def word_to_html_direct(
+    request: Request,
+    week_start: str = "",
+    week_end: str = "",
+) -> FileResponse:
+    """直接将Word文件转换为HTML，跳过编辑面板"""
+    filename = unquote(request.headers.get("x-filename", ""))
+    if filename and not filename.lower().endswith(".docx"):
+        raise HTTPException(status_code=400, detail="请上传 .docx Word 文件")
+    data = await request.body()
+    if len(data) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Word 文件不能超过 20 MB")
+    try:
+        items = parse_reviewed_docx_bytes(data)
+    except Exception:
+        raise HTTPException(status_code=400, detail="无法解析该 Word 文件，请使用 .docx 格式")
+    if not items:
+        raise HTTPException(
+            status_code=422,
+            detail="未识别到新闻条目，请确认 Word 中包含编号标题、摘要和原文链接",
+        )
+
+    output_dir = ROOT / CONFIG["paths"].get("output_dir", "output")
+    end = week_end or date.today().isoformat()
+    try:
+        end_date = as_date(end)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid week end date")
+
+    session_id = uuid4().hex
+    output_path = output_dir / f"{end_date:%m%d}法讯_{session_id[:8]}.html"
+
     render_wechat_html(
         items,
         ROOT / CONFIG["paths"].get(

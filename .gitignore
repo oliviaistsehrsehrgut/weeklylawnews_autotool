@@ -1,11 +1,15 @@
 __pycache__/
 *.py[cod]
+.venv/
 .wechat-browser/
 .env
+.debug/
 config.toml
+server.log
 input/*
 !input/sample_links.txt
 work/.sessions/
 output/
 static/__pycache__/
+et mark*
 

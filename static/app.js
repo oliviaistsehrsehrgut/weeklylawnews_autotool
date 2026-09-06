@@ -57,7 +57,10 @@ function render() {
       const pending = state.pending[item.id] || "";
       const link = String(item.final_link || "").trim();
       const canOpen = isHttpUrl(link);
-      return `<article class="news-card" data-id="${escapeHtml(item.id)}">
+      const strip = index > 0
+        ? `<div class="insert-strip" data-insert-before="${index}"><button type="button" class="insert-btn" data-action="insert-item">\uff0b</button></div>`
+        : "";
+      return `${strip}<article class="news-card" data-id="${escapeHtml(item.id)}">
     <div class="card-head"><div class="card-title"><button type="button" class="drag-handle" draggable="true" title="\u62d6\u52a8\u4ea4\u6362\u987a\u5e8f" aria-label="\u62d6\u52a8\u4ea4\u6362\u987a\u5e8f">&#x2630;</button><span class="number">${index + 1}.</span> <strong>${labels.item}</strong></div><button class="remove" data-action="remove">${labels.remove}</button></div>
     <div class="field"><label>${labels.title}</label><input data-field="title" value="${escapeHtml(item.title)}"></div>
     <div class="field"><label>${labels.summary}</label><textarea data-field="summary" rows="5">${escapeHtml(item.summary)}</textarea></div>
@@ -71,7 +74,7 @@ function render() {
     })
     .join("");
   $("actions").hidden = state.items.length === 0;
-  $("news-toolbar").hidden = !state.sessionId;
+  $("news-toolbar").hidden = false;
   $("session-state").textContent = state.sessionId
     ? `${state.items.length} \u6761\u65b0\u95fb`
     : "\u672a\u5f00\u59cb";
@@ -153,9 +156,9 @@ function downloadTextFile(content, filename) {
   window.setTimeout(() => URL.revokeObjectURL(urlObject), 0);
 }
 
-function addBlankItem() {
+function addBlankItem(insertBefore) {
   readAllCards();
-  state.items.push({
+  const newItem = {
     id: `manual-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     original_link: "",
     final_link: "",
@@ -172,10 +175,14 @@ function addBlankItem() {
     fetch_status: "pending",
     reason: "",
     error: "",
-  });
+  };
+  const idx = (insertBefore == null || insertBefore >= state.items.length)
+    ? state.items.length
+    : Math.max(0, insertBefore);
+  state.items.splice(idx, 0, newItem);
   render();
   const cards = document.querySelectorAll(".news-card");
-  cards[cards.length - 1]?.querySelector('[data-field="title"]')?.focus();
+  cards[idx]?.querySelector('[data-field="title"]')?.focus();
 }
 
 $("llm-settings-btn").onclick = openLlmModal;
@@ -248,7 +255,7 @@ $("word-file").addEventListener("change", async (event) => {
     state.sessionId = data.session_id;
     state.items = data.items;
     state.pending = {};
-    $("input-text").value = data.text || "";
+    $("input-text").value = "";
     $("upload-state").textContent = `\u5df2\u89e3\u6790 ${state.items.length} \u6761\u65b0\u95fb`;
     render();
   } catch (error) {
@@ -394,6 +401,12 @@ $("sort-btn").onclick = async () => {
 };
 
 $("news-list").addEventListener("click", (event) => {
+  if (event.target.dataset.action === "insert-item") {
+    const strip = event.target.closest(".insert-strip");
+    const insertBefore = parseInt(strip?.dataset.insertBefore ?? "", 10);
+    if (!isNaN(insertBefore)) addBlankItem(insertBefore);
+    return;
+  }
   const card = event.target.closest(".news-card");
   if (!card) return;
   const action = event.target.dataset.action;
@@ -596,6 +609,48 @@ function updateWeekHint() {
 });
 setDefaultWeek();
 updateWeekHint();
+
+$("word-direct-btn").onclick = () => $("word-direct-file").click();
+
+$("word-direct-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const button = $("word-direct-btn");
+  $("global-error").textContent = "";
+  $("direct-state").textContent = "";
+  setBusy(button, true, "\u8f6c\u6362\u4e2d...");
+  try {
+    const params = new URLSearchParams({
+      week_start: $("week-start").value,
+      week_end: $("week-end").value,
+    });
+    const response = await fetch(`/api/word/direct-html?${params.toString()}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": file.type || "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "X-Filename": encodeURIComponent(file.name),
+      },
+      body: file,
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail || "\u8f6c\u6362\u5931\u8d25");
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = response.headers.get("content-disposition")?.match(/filename="?(.+?)"?$/)?.[1] || "\u6cd5\u8baf.html";
+    a.click();
+    URL.revokeObjectURL(url);
+    $("direct-state").textContent = "HTML \u5df2\u751f\u6210\u5e76\u4e0b\u8f7d";
+  } catch (error) {
+    $("global-error").textContent = error.message;
+  } finally {
+    event.target.value = "";
+    setBusy(button, false);
+  }
+});
 
 api("/api/status")
   .then((data) => {

@@ -38,16 +38,27 @@ SYSTEM_PROMPT = """你是法律新闻事实摘编助手，负责把公开网页�
 
 
 LEGAL_LEVELS = {
+    # Current classification system
+    "部门规章",
+    "规范性文件",
+    "国家标准",
+    "行业标准",
+    "技术指南",
+    "征求意见稿",
+    "工作动态",
+    "地方文件",
+    # High-level legislation
     "宪法",
     "法律",
     "行政法规",
-    "地方性法规",
-    "部门规章/地方政府规章",
-    "规范性文件",
-    "国内其他事件",
+    # International
     "国际公约",
     "外国法律",
     "国外其他事件",
+    # Legacy (kept for backward compatibility with stored sessions)
+    "地方性法规",
+    "部门规章/地方政府规章",
+    "国内其他事件",
 }
 
 
@@ -117,7 +128,7 @@ def enrich_one(item: NewsItem, config: Dict[str, Any]) -> NewsItem:
                             "summary": "80-150字中文事实摘要；以原文明确事实为依据，区分事实、观点和情感，不把编辑判断写入摘要",
                             "topic": "主题标签，多个主题用顿号分隔",
                             "jurisdiction": "国内或国外",
-                            "legal_level": "宪法/法律/行政法规/地方性法规/部门规章/地方政府规章/规范性文件/国内其他事件/国际公约/外国法律/国外其他事件",
+                            "legal_level": "部门规章/规范性文件/国家标准/行业标准/技术指南/征求意见稿/工作动态/地方文件/宪法/法律/行政法规/国际公约/外国法律/国外其他事件",
                             "is_legal_news": "boolean",
                             "official_link": "官方原文链接，如无法确认则为空字符串",
                             "reason": "筛选或分类理由，简短且基于原文",

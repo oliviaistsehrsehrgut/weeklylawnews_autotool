@@ -1,17 +1,18 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from docx import Document
+from docx.oxml.ns import qn
 
 from .models import NewsItem
 
-TITLE_PREFIX = re.compile(r"^\s*\d+\s*[.．、]\s*")
-SUMMARY_PREFIX = re.compile(r"^\s*摘要\s*[:：]\s*")
-LINK_PREFIX = re.compile(r"^\s*原文链接\s*[:：]\s*")
+TITLE_PREFIX = re.compile(r"^\s*\d+\s*[..．、]\s*")
+SUMMARY_PREFIX = re.compile(r"^\s*摘要\s*[::：]\s*")
+LINK_PREFIX = re.compile(r"^\s*原文链接\s*[::：]\s*")
 
 
 def parse_reviewed_docx(path: Path) -> List[NewsItem]:
@@ -22,9 +23,26 @@ def parse_reviewed_docx_bytes(data: bytes) -> List[NewsItem]:
     return parse_document(Document(BytesIO(data)))
 
 
+def _has_auto_numbering(paragraph) -> bool:
+    """Return True if Word auto-numbers this paragraph (List Paragraph with w:numPr)."""
+    pPr = paragraph._element.find(qn("w:pPr"))
+    if pPr is None:
+        return False
+    return pPr.find(qn("w:numPr")) is not None
+
+
+def _is_title(paragraph, text: str) -> bool:
+    """True if this paragraph is a news item title."""
+    # Explicitly typed number prefix: "1. ", "2、", etc.
+    if TITLE_PREFIX.match(text):
+        return True
+    # Word auto-numbering (e.g. 法讯草稿模板.docx List Paragraph slots)
+    return _has_auto_numbering(paragraph)
+
+
 def parse_document(document: Document) -> List[NewsItem]:
     items: List[NewsItem] = []
-    current: NewsItem | None = None
+    current: Optional[NewsItem] = None
 
     for paragraph in document.paragraphs:
         text = paragraph.text.strip()
@@ -39,12 +57,12 @@ def parse_document(document: Document) -> List[NewsItem]:
             current.link = clean_word_link(LINK_PREFIX.sub("", text).strip())
             continue
 
-        if current is None:
-            current = NewsItem(title=TITLE_PREFIX.sub("", text).strip(), source="人工审查 Word")
-        elif TITLE_PREFIX.match(text):
-            if current.title or current.summary or current.link or current.content:
+        if _is_title(paragraph, text):
+            if current and (current.title or current.summary or current.link or current.content):
                 items.append(current)
             current = NewsItem(title=TITLE_PREFIX.sub("", text).strip(), source="人工审查 Word")
+        elif current is None:
+            current = NewsItem(title=text, source="人工审查 Word")
         else:
             current.content = "\n".join(part for part in (current.content, text) if part)
 
@@ -54,12 +72,10 @@ def parse_document(document: Document) -> List[NewsItem]:
 
 
 def clean_word_link(link: str) -> str:
-    return link.replace("\u200b", "")
+    return link.replace("​", "")
 
 
-def ensure_current(current: NewsItem | None) -> NewsItem:
+def ensure_current(current: Optional[NewsItem]) -> NewsItem:
     if current is None:
         return NewsItem(source="人工审查 Word")
     return current
-
-
