@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+_python/
 .wechat-browser/
 .env
 .debug/
